@@ -1,0 +1,4 @@
+[global.databases]
+oracle_db = {url = "fuck me", username = "KURSACH_COUNTRIES", password = "qwerty", connect_string = "localhost"}
+
+
