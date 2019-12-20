@@ -1,0 +1,14 @@
+{% extends "base" %}
+
+{% block page_name %}
+Countries
+{% endblock page_name %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/">Home</a></li>
+<li class="breadcrumb-item active">Countries</li>
+{% endblock breadcrumbs %}
+
+{% block main %}
+Welcome to the home page!
+{% endblock main %}

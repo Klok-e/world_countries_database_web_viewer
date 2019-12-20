@@ -9,8 +9,9 @@ edition = "2018"
 [dependencies]
 rocket = "0.4.2"
 r2d2-oracle = "0.2.0"
+serde = { version = "1.0.104", features = ["derive"] }
 
 [dependencies.rocket_contrib]
 version = "0.4.2"
 default-features = false
-features = ["tera_templates", "databases"]
+features = ["tera_templates", "databases", "serve", "json"]

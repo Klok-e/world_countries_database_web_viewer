@@ -1,0 +1,13 @@
+{% extends "base" %}
+
+{% block page_name %}
+Home
+{% endblock page_name %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active">Home</li>
+{% endblock breadcrumbs %}
+
+{% block main %}
+Welcome to the home page!
+{% endblock main %}
