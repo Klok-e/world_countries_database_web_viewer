@@ -6,10 +6,12 @@ extern crate rocket_contrib;
 
 mod database_operations;
 mod database_oracle;
+mod error;
 mod schema;
 
 use database_operations::load_data;
 use database_oracle::OracleConnection;
+use error::Error;
 use rocket_contrib::json::{Json, JsonValue};
 use rocket_contrib::serve::StaticFiles;
 use rocket_contrib::templates::tera::Value;
@@ -33,11 +35,13 @@ fn continents(conn: OracleConnection) -> Template {
 }
 
 #[get("/continents.tera/items?<page_index>&<page_size>")]
-fn continents_read(conn: OracleConnection, page_index: usize, page_size: usize) -> JsonValue {
-    dbg!(page_index);
-    dbg!(page_size);
-    dbg!(load_data(&*conn, 0, 5));
-    json!({ "status" : "ok"})
+fn continents_read(
+    conn: OracleConnection,
+    page_index: usize,
+    page_size: usize,
+) -> Result<JsonValue, Error> {
+    let data = load_data(&*conn, 1, 100)?.collect::<Result<Vec<_>, _>>()?;
+    Ok(json!({ "itemsCount" : 10, "data" : data}))
 }
 
 #[post("/continents.tera/items", data = "<continent>")]

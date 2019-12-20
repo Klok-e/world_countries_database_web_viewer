@@ -44,7 +44,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
             <img src="../images/logo.png" alt="Dima Logo"
                  class="brand-image img-rounded elevation-3"
                  style="opacity: .8">
-            <span class="brand-text font-weight-light">Dima Productions</span>
+            <span class="brand-text font-weight-light">Dmitriy Enterprise</span>
         </a>
 
         <!-- Sidebar -->
@@ -139,7 +139,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- Main Footer -->
     <footer class="main-footer">
         <!-- Default to the left -->
-        <strong>Copyright &copy; 2019 Dima Productions.</strong> All rights reserved.
+        <strong>Copyright &copy; 2019 Dmitriy Enterprise.</strong> All rights reserved.
     </footer>
 </div>
 <!-- ./wrapper -->
