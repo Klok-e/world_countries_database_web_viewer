@@ -405,6 +405,7 @@ name = "kursach"
 version = "0.1.0"
 dependencies = [
  "itertools",
+ "lazy_static",
  "r2d2-oracle",
  "rocket",
  "rocket_contrib",

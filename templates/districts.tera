@@ -10,5 +10,16 @@ Districts
 {% endblock breadcrumbs %}
 
 {% block main %}
-Welcome to the home page!
+<div id="jsGrid"></div>
 {% endblock main %}
+
+{% block body_end %}
+<script>
+    create_grid("#jsGrid", "districts.tera", [
+        {name: "district_id", title: "District ID", type: "number", width: 50},
+        {name: "district_name", title: "District Name", type: "text", width: 100},
+        {name: "fg_city_id", title: "City ID", type: "number", width: 50},
+        {type: "control"}
+    ])
+</script>
+{% endblock body_end %}

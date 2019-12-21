@@ -1,8 +1,5 @@
 use crate::database_operations::SchemaTable;
-use r2d2_oracle::oracle::{
-    sql_type::{FromSql, ToSql},
-    Error, Row, RowValue,
-};
+use r2d2_oracle::oracle::{sql_type::ToSql, Error, Row, RowValue};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -87,12 +84,80 @@ pub struct Country {
     pub fg_continent_name: Option<String>,
     pub fg_capital_city_id: Option<String>,
 }
+impl RowValue for Country {
+    fn get(row: &Row) -> Result<Self, Error> {
+        Ok(Country {
+            name: row.get("name")?,
+            fg_continent_name: row.get("fg_continent_name")?,
+            fg_capital_city_id: row.get("fg_capital_city_id")?,
+        })
+    }
+}
+impl SchemaTable for Country {
+    fn column_names() -> Vec<&'static str> {
+        vec!["name", "fg_continent_name", "fg_capital_city_id"]
+    }
+
+    fn table_name() -> &'static str {
+        "countries"
+    }
+
+    fn values(&self) -> Vec<Box<dyn ToSql>> {
+        vec![
+            Box::new(self.name.clone()),
+            Box::new(self.fg_continent_name.clone()),
+            Box::new(self.fg_capital_city_id.clone()),
+        ]
+    }
+
+    fn key_attrs() -> Vec<&'static str> {
+        vec!["name"]
+    }
+
+    fn key_attr_values(&self) -> Vec<Box<dyn ToSql>> {
+        vec![Box::new(self.name.clone())]
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct District {
     pub district_id: usize,
     pub district_name: String,
     pub fg_city_id: Option<usize>,
+}
+impl RowValue for District {
+    fn get(row: &Row) -> Result<Self, Error> {
+        Ok(District {
+            district_id: row.get("district_id")?,
+            district_name: row.get("district_name")?,
+            fg_city_id: row.get("fg_city_id")?,
+        })
+    }
+}
+impl SchemaTable for District {
+    fn column_names() -> Vec<&'static str> {
+        vec!["district_id", "district_name", "fg_city_id"]
+    }
+
+    fn table_name() -> &'static str {
+        "districts"
+    }
+
+    fn values(&self) -> Vec<Box<dyn ToSql>> {
+        vec![
+            Box::new(self.district_id.clone()),
+            Box::new(self.district_name.clone()),
+            Box::new(self.fg_city_id.clone()),
+        ]
+    }
+
+    fn key_attrs() -> Vec<&'static str> {
+        vec!["district_id"]
+    }
+
+    fn key_attr_values(&self) -> Vec<Box<dyn ToSql>> {
+        vec![Box::new(self.district_id.clone())]
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -104,4 +169,54 @@ pub struct Region {
     pub area_m2: f64,
     pub climate: String,
     pub fg_centre_city_id: Option<usize>,
+}
+impl RowValue for Region {
+    fn get(row: &Row) -> Result<Self, Error> {
+        Ok(Region {
+            region_id: row.get("region_id")?,
+            region_name: row.get("region_name")?,
+            fg_country_name: row.get("fg_country_name")?,
+            population: row.get("population")?,
+            area_m2: row.get("area_m2")?,
+            climate: row.get("climate")?,
+            fg_centre_city_id: row.get("fg_centre_city_id")?,
+        })
+    }
+}
+impl SchemaTable for Region {
+    fn column_names() -> Vec<&'static str> {
+        vec![
+            "region_id",
+            "region_name",
+            "fg_country_name",
+            "population",
+            "area_m2",
+            "climate",
+            "fg_centre_city_id",
+        ]
+    }
+
+    fn table_name() -> &'static str {
+        "regions"
+    }
+
+    fn values(&self) -> Vec<Box<dyn ToSql>> {
+        vec![
+            Box::new(self.region_id.clone()),
+            Box::new(self.region_name.clone()),
+            Box::new(self.fg_country_name.clone()),
+            Box::new(self.population.clone()),
+            Box::new(self.area_m2.clone()),
+            Box::new(self.climate.clone()),
+            Box::new(self.fg_centre_city_id.clone()),
+        ]
+    }
+
+    fn key_attrs() -> Vec<&'static str> {
+        vec!["region_id"]
+    }
+
+    fn key_attr_values(&self) -> Vec<Box<dyn ToSql>> {
+        vec![Box::new(self.region_id.clone())]
+    }
 }

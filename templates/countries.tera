@@ -10,5 +10,16 @@ Countries
 {% endblock breadcrumbs %}
 
 {% block main %}
-Welcome to the home page!
+<div id="jsGrid"></div>
 {% endblock main %}
+
+{% block body_end %}
+<script>
+    create_grid("#jsGrid", "countries.tera", [
+        {name: "name", title: "Name", type: "text", width: 100},
+        {name: "fg_continent_name", title: "Continent", type: "text", width: 50},
+        {name: "fg_capital_city_id", title: "Capital ID", type: "number", width: 50},
+        {type: "control"}
+    ])
+</script>
+{% endblock body_end %}

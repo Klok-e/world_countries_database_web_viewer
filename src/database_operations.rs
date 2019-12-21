@@ -1,12 +1,8 @@
 use crate::database_oracle::DbConnection;
 use crate::error::Error;
-use crate::schema::Continent;
 use itertools::Itertools;
 use r2d2_oracle::oracle::ResultSet;
-use r2d2_oracle::oracle::{
-    sql_type::{FromSql, ToSql},
-    Row, RowValue,
-};
+use r2d2_oracle::oracle::{sql_type::ToSql, RowValue};
 
 pub trait SchemaTable {
     fn column_names() -> Vec<&'static str>;
@@ -40,7 +36,7 @@ where
     T: SchemaTable,
 {
     let conn = connection.oracle_connection();
-    let sql = dbg!(format!(
+    let sql = format!(
         "insert into {} values ({})",
         T::table_name(),
         T::column_names()
@@ -48,7 +44,7 @@ where
             .enumerate()
             .map(|(i, _)| format!(":{}", i + 1))
             .join(",")
-    ));
+    );
 
     let vals = table_entity.values();
     let sql_params = vals
@@ -61,25 +57,58 @@ where
     Ok(())
 }
 
-pub fn update_data<T>(connection: &DbConnection, table_entity: T) -> Result<(), Error>
+fn check_data_key_exists<T>(connection: &DbConnection, table_entity: &T) -> Result<bool, Error>
 where
-    T: SchemaTable,
+    T: SchemaTable + RowValue,
 {
     let conn = connection.oracle_connection();
-    let sql = dbg!(format!(
+    let sql = format!(
+        "select {} from {} where {}",
+        T::key_attrs().join(","),
+        T::table_name(),
+        T::key_attrs()
+            .into_iter()
+            .enumerate()
+            .map(|(i, key)| format!("{}=:{}", key, i + 1))
+            .join(" and ")
+    );
+    let vals = table_entity.key_attr_values();
+    let sql_params = vals
+        .iter()
+        .map(|i| i.as_ref())
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
+    let matches = conn.query_as::<T>(&sql, sql_params.as_ref())?;
+    Ok(matches.count() > 0)
+}
+
+pub fn update_data<T>(connection: &DbConnection, table_entity: T) -> Result<(), Error>
+where
+    T: SchemaTable + RowValue,
+{
+    // first check if an item with the same keys exists
+    if check_data_key_exists(connection, &table_entity)? {
+        return Err(Error::KeyAlreadyExistsError {
+            table_name: T::table_name().to_owned(),
+        });
+    }
+
+    // if it doesn't then it's ok to update item
+    let conn = connection.oracle_connection();
+    let sql = format!(
         "update {} set {} where {}",
         T::table_name(),
         T::column_names()
             .into_iter()
             .enumerate()
-            .map(|(i, col_name)| format!("{}=:{}", col_name, i))
+            .map(|(i, col_name)| format!("{}=:{}", col_name, i + 1))
             .join(","),
         T::key_attrs()
             .into_iter()
             .enumerate()
-            .map(|(i, key_attr_name)| format!("{}=:{}", key_attr_name, i))
+            .map(|(i, key_attr_name)| format!("{}=:{}", key_attr_name, i + 1))
             .join(" and ")
-    ));
+    );
 
     let vals = table_entity.values();
     let sql_params = vals
@@ -97,17 +126,17 @@ where
     T: SchemaTable,
 {
     let conn = connection.oracle_connection();
-    let sql = dbg!(format!(
+    let sql = format!(
         "delete from {} where {}",
         T::table_name(),
         T::key_attrs()
             .into_iter()
             .enumerate()
-            .map(|(i, key_attr_name)| format!("{}=:{}", key_attr_name, i))
+            .map(|(i, key_attr_name)| format!("{}=:{}", key_attr_name, i + 1))
             .join(" and ")
-    ));
+    );
 
-    let vals = table_entity.values();
+    let vals = table_entity.key_attr_values();
     let sql_params = vals
         .iter()
         .map(|i| i.as_ref())

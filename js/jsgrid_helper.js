@@ -1,4 +1,4 @@
-function create_grid(gridId, fields) {
+function create_grid(gridId, page_name, fields) {
     $(gridId).jsGrid({
         width: "100%",
 
@@ -10,13 +10,13 @@ function create_grid(gridId, fields) {
         pageLoading: true,
 
         pageSize: 10,
-        pageButtonCount: 3,
+        pageButtonCount: 5,
 
         controller: {
             loadData: function (filter) {
                 return $.ajax({
                     type: "GET",
-                    url: "/continents.tera/items?page_index=" + filter.pageIndex + "&page_size=" + filter.pageSize,
+                    url: "/" + page_name + "/items?page_index=" + filter.pageIndex + "&page_size=" + filter.pageSize,
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(textStatus)
                     }
@@ -28,11 +28,12 @@ function create_grid(gridId, fields) {
                 console.log(item);
                 $.ajax({
                     type: "POST",
-                    url: "/continents.tera/items",
+                    url: "/" + page_name + "/items",
                     data: JSON.stringify(item),
                     contentType: "application/json",
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(textStatus);
+                        $(gridId).jsGrid("clearInsert");
                         d.reject()
                     },
                     success: function (data, status, jqXHR) {
@@ -47,11 +48,12 @@ function create_grid(gridId, fields) {
                 console.log(item);
                 $.ajax({
                     type: "PUT",
-                    url: "/continents.tera/items",
+                    url: "/" + page_name + "/items",
                     data: JSON.stringify(item),
                     contentType: "application/json",
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(textStatus);
+                        $(gridId).jsGrid("clearInsert");
                         d.reject()
                     },
                     success: function (data, status, jqXHR) {
@@ -66,11 +68,12 @@ function create_grid(gridId, fields) {
                 console.log(item);
                 $.ajax({
                     type: "DELETE",
-                    url: "/continents.tera/items",
+                    url: "/" + page_name + "/items",
                     data: JSON.stringify(item),
                     contentType: "application/json",
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(textStatus);
+                        $(gridId).jsGrid("clearInsert");
                         d.reject()
                     },
                     success: function (data, status, jqXHR) {
