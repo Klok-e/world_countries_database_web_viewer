@@ -9,9 +9,10 @@ mod database_oracle;
 mod error;
 mod schema;
 
-use database_operations::load_data;
-use database_oracle::OracleConnection;
-use error::Error;
+use crate::database_operations::{count_rows, delete_data, insert_data, load_data, update_data};
+use crate::database_oracle::OracleConnection;
+use crate::error::Error;
+use crate::schema::Continent;
 use rocket_contrib::json::{Json, JsonValue};
 use rocket_contrib::serve::StaticFiles;
 use rocket_contrib::templates::tera::Value;
@@ -37,29 +38,42 @@ fn continents(conn: OracleConnection) -> Template {
 #[get("/continents.tera/items?<page_index>&<page_size>")]
 fn continents_read(
     conn: OracleConnection,
-    page_index: usize,
+    mut page_index: usize,
     page_size: usize,
 ) -> Result<JsonValue, Error> {
-    let data = load_data(&*conn, 1, 100)?.collect::<Result<Vec<_>, _>>()?;
-    Ok(json!({ "itemsCount" : 10, "data" : data}))
+    page_index -= 1;
+    let data =
+        load_data::<Continent>(&*conn, page_index * page_size, page_size * (page_index + 1))?
+            .collect::<Result<Vec<_>, _>>()?;
+    let item_count = count_rows::<Continent>(&*conn)?;
+    Ok(json!({ "itemsCount" : item_count, "data" : data}))
 }
 
-#[post("/continents.tera/items", data = "<continent>")]
-fn continents_insert(conn: OracleConnection, continent: Json<schema::Continent>) -> JsonValue {
-    println!("insert");
-    json!({ "status" : "ok"})
+#[post("/continents.tera/items", format = "json", data = "<continent>")]
+fn continents_insert(
+    conn: OracleConnection,
+    continent: Json<schema::Continent>,
+) -> Result<Json<schema::Continent>, Error> {
+    insert_data(&*conn, continent.0.clone())?;
+    Ok(continent)
 }
 
-#[put("/continents.tera/items", data = "<continent>")]
-fn continents_update(conn: OracleConnection, continent: Json<schema::Continent>) -> JsonValue {
-    println!("update");
-    json!({ "status" : "ok"})
+#[put("/continents.tera/items", format = "json", data = "<continent>")]
+fn continents_update(
+    conn: OracleConnection,
+    continent: Json<schema::Continent>,
+) -> Result<Json<schema::Continent>, Error> {
+    update_data(&*conn, continent.0.clone())?;
+    Ok(continent)
 }
 
-#[delete("/continents.tera", data = "<continent>")]
-fn continents_delete(conn: OracleConnection, continent: Json<schema::Continent>) -> JsonValue {
-    println!("delete");
-    json!({ "status" : "ok"})
+#[delete("/continents.tera/items", format = "json", data = "<continent>")]
+fn continents_delete(
+    conn: OracleConnection,
+    continent: Json<schema::Continent>,
+) -> Result<Json<schema::Continent>, Error> {
+    delete_data(&*conn, continent.0.clone())?;
+    Ok(continent)
 }
 
 #[get("/cities.tera")]
@@ -103,5 +117,6 @@ fn main() {
         )
         .mount("/images", StaticFiles::from("./images"))
         .mount("/adminlte", StaticFiles::from("./adminlte"))
+        .mount("/js", StaticFiles::from("./js"))
         .launch();
 }

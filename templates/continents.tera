@@ -15,64 +15,10 @@ Continents
 
 {% block body_end %}
 <script>
-    let countries = [
-        {Name: "", Id: 0},
-        {Name: "United States", Id: 1},
-        {Name: "Canada", Id: 2},
-        {Name: "United Kingdom", Id: 3}
-    ];
-
-    $("#jsGrid").jsGrid({
-        width: "100%",
-
-        inserting: true,
-        editing: true,
-        sorting: true,
-        autoload: true,
-        paging: true,
-        pageLoading: true,
-
-        pageSize: 10,
-        pageButtonCount: 3,
-
-        controller: {
-            loadData: function (filter) {
-                return $.ajax({
-                    type: "GET",
-                    url: "/continents.tera/items?page_index=" + filter.pageIndex + "&page_size=" + filter.pageSize,
-                });
-            },
-
-            insertItem: function (item) {
-                return $.ajax({
-                    type: "POST",
-                    url: "/continents.tera/items",
-                    data: item
-                });
-            },
-
-            updateItem: function (item) {
-                return $.ajax({
-                    type: "PUT",
-                    url: "/continents.tera/items",
-                    data: item
-                });
-            },
-
-            deleteItem: function (item) {
-                return $.ajax({
-                    type: "DELETE",
-                    url: "/continents.tera/items",
-                    data: item
-                });
-            },
-        },
-
-        fields: [
-            {name: "name", title:"Name", type: "text", width: 100},
-            {name: "area_m2", title:"Area M2", type: "number", width: 50},
-            {type: "control"}
-        ]
-    });
+    create_grid("#jsGrid", [
+        {name: "name", title: "Name", type: "text", width: 100},
+        {name: "area_m2", title: "Area M2", type: "number", width: 50},
+        {type: "control"}
+    ])
 </script>
 {% endblock body_end %}

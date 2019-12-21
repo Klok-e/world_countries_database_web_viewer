@@ -154,6 +154,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
 <script src="../adminlte/plugins/jsgrid/jsgrid.min.js"></script>
 <!-- AdminLTE App -->
 <script src="../adminlte/dist/js/adminlte.min.js"></script>
+<!-- My scripts -->
+<script src="../js/jsgrid_helper.js"></script>
 {% block body_end %}
 {% endblock body_end %}
 </body>
