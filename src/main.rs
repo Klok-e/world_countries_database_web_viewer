@@ -6,6 +6,7 @@ extern crate rocket_contrib;
 #[macro_use]
 extern crate lazy_static;
 
+mod core;
 mod database_operations;
 mod database_oracle;
 mod error;

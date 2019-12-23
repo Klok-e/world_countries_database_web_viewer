@@ -31,7 +31,7 @@ where
     Ok(conts)
 }
 
-pub fn insert_data<T>(connection: &DbConnection, table_entity: T) -> Result<(), Error>
+pub fn insert_data<T>(connection: &DbConnection, table_entity: &T) -> Result<(), Error>
 where
     T: SchemaTable,
 {
@@ -82,20 +82,25 @@ where
     Ok(matches.count() > 0)
 }
 
-pub fn update_data<T>(connection: &DbConnection, table_entity: T) -> Result<(), Error>
+pub fn update_data<T>(
+    connection: &DbConnection,
+    table_entity_old: &T,
+    table_entity_new: &T,
+) -> Result<(), Error>
 where
     T: SchemaTable + RowValue,
 {
-    // first check if an item with the same keys exists
-    if check_data_key_exists(connection, &table_entity)? {
-        return Err(Error::KeyAlreadyExistsError {
+    // first check if an item with the old keys exists
+    if !check_data_key_exists(connection, table_entity_old)? {
+        // error if it doesn't
+        return Err(Error::KeyDoesntExistError {
             table_name: T::table_name().to_owned(),
         });
     }
 
-    // if it doesn't then it's ok to update item
+    let col_len = T::column_names().len();
     let conn = connection.oracle_connection();
-    let sql = format!(
+    let sql = dbg!(format!(
         "update {} set {} where {}",
         T::table_name(),
         T::column_names()
@@ -106,13 +111,15 @@ where
         T::key_attrs()
             .into_iter()
             .enumerate()
-            .map(|(i, key_attr_name)| format!("{}=:{}", key_attr_name, i + 1))
+            .map(|(i, key_attr_name)| format!("{}=:{}", key_attr_name, col_len + i + 1))
             .join(" and ")
-    );
+    ));
 
-    let vals = table_entity.values();
-    let sql_params = vals
+    let new_vals = table_entity_new.values();
+    let old_keys = table_entity_old.key_attr_values();
+    let sql_params = new_vals
         .iter()
+        .chain(old_keys.iter())
         .map(|i| i.as_ref())
         .collect::<Vec<_>>()
         .into_boxed_slice();
@@ -121,7 +128,7 @@ where
     Ok(())
 }
 
-pub fn delete_data<T>(connection: &DbConnection, table_entity: T) -> Result<(), Error>
+pub fn delete_data<T>(connection: &DbConnection, table_entity: &T) -> Result<(), Error>
 where
     T: SchemaTable,
 {

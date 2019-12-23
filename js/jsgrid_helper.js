@@ -1,4 +1,5 @@
 function create_grid(gridId, page_name, fields) {
+    let previousItem;
     $(gridId).jsGrid({
         width: "100%",
 
@@ -11,6 +12,10 @@ function create_grid(gridId, page_name, fields) {
 
         pageSize: 10,
         pageButtonCount: 5,
+
+        onItemUpdating: function (args) {
+            previousItem = args.previousItem;
+        },
 
         controller: {
             loadData: function (filter) {
@@ -49,7 +54,7 @@ function create_grid(gridId, page_name, fields) {
                 $.ajax({
                     type: "PUT",
                     url: "/" + page_name + "/items",
-                    data: JSON.stringify(item),
+                    data: JSON.stringify({old: previousItem, new: item}),
                     contentType: "application/json",
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(textStatus);
