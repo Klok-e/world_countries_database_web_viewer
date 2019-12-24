@@ -1,114 +1,94 @@
 use crate::core::OldNew;
-use crate::database_operations::{count_rows, delete_data, insert_data, load_data, update_data};
+use crate::database_operations::{
+    count_rows, delete_data, insert_data, load_data, update_data, SchemaTable,
+};
 use crate::database_oracle::OracleConnection;
 use crate::error::Error;
 use crate::schema::{City, Continent, Country, District, Region};
+use r2d2_oracle::oracle::RowValue;
 use rocket::Route;
 use rocket_contrib::json::{Json, JsonValue};
+use serde::Serialize;
+use std::fmt::Debug;
 
 lazy_static! {
     pub static ref CRUD_ROUTES: Vec<Route> = routes![
-        continents_read,
+        read_data,
         continents_update,
         continents_insert,
         continents_delete,
-        cities_read,
         cities_update,
         cities_insert,
         cities_delete,
-        countries_read,
         countries_update,
         countries_insert,
         countries_delete,
-        districts_read,
         districts_update,
         districts_insert,
         districts_delete,
-        regions_read,
         regions_update,
         regions_insert,
         regions_delete,
     ];
 }
 
-#[get("/continents.tera/items?<page_index>&<page_size>")]
-fn continents_read(
-    conn: OracleConnection,
-    mut page_index: usize,
-    page_size: usize,
-) -> Result<JsonValue, Error> {
-    page_index -= 1;
-    let data = load_data::<Continent>(
-        &*conn,
-        page_index * page_size + 1,
-        page_size * (page_index + 1),
-    )?;
-    let item_count = count_rows::<Continent>(&*conn)?;
-    Ok(json!({ "itemsCount" : item_count, "data" : data}))
+enum Table {
+    Continents,
+    Cities,
+    Countries,
+    Districts,
+    Regions,
 }
 
-#[get("/cities.tera/items?<page_index>&<page_size>")]
-fn cities_read(
-    conn: OracleConnection,
-    mut page_index: usize,
-    page_size: usize,
-) -> Result<JsonValue, Error> {
-    page_index -= 1;
-    let data = load_data::<City>(
-        &*conn,
-        page_index * page_size + 1,
-        page_size * (page_index + 1),
-    )?;
-    let item_count = count_rows::<City>(&*conn)?;
-    Ok(json!({ "itemsCount" : item_count, "data" : data}))
+impl Table {
+    fn parse(name: String) -> Result<Self, Error> {
+        Ok(match name.split(".").next().as_ref() {
+            Some(&"continents") => Self::Continents,
+            Some(&"cities") => Self::Cities,
+            Some(&"countries") => Self::Countries,
+            Some(&"districts") => Self::Districts,
+            Some(&"regions") => Self::Regions,
+            _ => return Err(Error::TableDoesntExistError { table: name }),
+        })
+    }
 }
 
-#[get("/countries.tera/items?<page_index>&<page_size>")]
-fn countries_read(
+#[get("/<table_name>/items?<page_index>&<page_size>")]
+fn read_data(
     conn: OracleConnection,
+    table_name: String,
     mut page_index: usize,
     page_size: usize,
 ) -> Result<JsonValue, Error> {
+    fn load_data_and_count_to_json<T>(
+        connection: &OracleConnection,
+        lower: usize,
+        higher: usize,
+    ) -> Result<JsonValue, Error>
+    where
+        T: SchemaTable + RowValue + Debug + Serialize,
+    {
+        let conn = &**connection;
+        let rows = count_rows::<T>(conn)?;
+        let data = load_data::<T>(conn, lower, higher)?;
+        Ok(json!({ "itemsCount" : rows, "data" : data}))
+    }
     page_index -= 1;
-    let data = load_data::<Country>(
-        &*conn,
-        page_index * page_size + 1,
-        page_size * (page_index + 1),
-    )?;
-    let item_count = count_rows::<Country>(&*conn)?;
-    Ok(json!({ "itemsCount" : item_count, "data" : data}))
-}
-
-#[get("/districts.tera/items?<page_index>&<page_size>")]
-fn districts_read(
-    conn: OracleConnection,
-    mut page_index: usize,
-    page_size: usize,
-) -> Result<JsonValue, Error> {
-    page_index -= 1;
-    let data = load_data::<District>(
-        &*conn,
-        page_index * page_size + 1,
-        page_size * (page_index + 1),
-    )?;
-    let item_count = count_rows::<District>(&*conn)?;
-    Ok(json!({ "itemsCount" : item_count, "data" : data}))
-}
-
-#[get("/regions.tera/items?<page_index>&<page_size>")]
-fn regions_read(
-    conn: OracleConnection,
-    mut page_index: usize,
-    page_size: usize,
-) -> Result<JsonValue, Error> {
-    page_index -= 1;
-    let data = load_data::<Region>(
-        &*conn,
-        page_index * page_size + 1,
-        page_size * (page_index + 1),
-    )?;
-    let item_count = count_rows::<Region>(&*conn)?;
-    Ok(json!({ "itemsCount" : item_count, "data" : data}))
+    let record_lower = page_index * page_size + 1;
+    let record_higher = page_size * (page_index + 1);
+    match Table::parse(table_name)? {
+        Table::Continents => {
+            load_data_and_count_to_json::<Continent>(&conn, record_lower, record_higher)
+        }
+        Table::Cities => load_data_and_count_to_json::<City>(&conn, record_lower, record_higher),
+        Table::Countries => {
+            load_data_and_count_to_json::<Country>(&conn, record_lower, record_higher)
+        }
+        Table::Districts => {
+            load_data_and_count_to_json::<District>(&conn, record_lower, record_higher)
+        }
+        Table::Regions => load_data_and_count_to_json::<Region>(&conn, record_lower, record_higher),
+    }
 }
 
 #[post("/continents.tera/items", format = "json", data = "<item>")]
