@@ -10,7 +10,7 @@ function create_grid(gridId, page_name, fields) {
         paging: true,
         pageLoading: true,
 
-        pageSize: 10,
+        pageSize: 15,
         pageButtonCount: 5,
 
         onItemUpdating: function (args) {

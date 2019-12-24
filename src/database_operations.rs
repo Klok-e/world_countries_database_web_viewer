@@ -1,8 +1,8 @@
 use crate::database_oracle::DbConnection;
 use crate::error::Error;
 use itertools::Itertools;
-use r2d2_oracle::oracle::ResultSet;
 use r2d2_oracle::oracle::{sql_type::ToSql, RowValue};
+use std::fmt::Debug;
 
 pub trait SchemaTable {
     fn column_names() -> Vec<&'static str>;
@@ -16,19 +16,20 @@ pub fn load_data<T>(
     connection: &DbConnection,
     record_start: usize,
     record_end: usize,
-) -> Result<ResultSet<T>, Error>
+) -> Result<Vec<T>, Error>
 where
-    T: SchemaTable + RowValue,
+    T: SchemaTable + RowValue + Debug,
 {
     let conn = connection.oracle_connection();
     let sql = format!(
-        "select {} from {} where rownum >= :1 and rownum <= :2",
+        "select {} from (select c.*,rownum r from (select * from {} order by {}) c) where r between :1 and :2",
         T::column_names().join(","),
-        T::table_name()
+        T::table_name(),
+        T::key_attrs().join(",")
     );
 
     let conts = conn.query_as::<T>(&sql, &[&record_start, &record_end])?;
-    Ok(conts)
+    Ok(conts.collect::<Result<Vec<_>, _>>()?)
 }
 
 pub fn insert_data<T>(connection: &DbConnection, table_entity: &T) -> Result<(), Error>
@@ -100,7 +101,7 @@ where
 
     let col_len = T::column_names().len();
     let conn = connection.oracle_connection();
-    let sql = dbg!(format!(
+    let sql = format!(
         "update {} set {} where {}",
         T::table_name(),
         T::column_names()
@@ -113,7 +114,7 @@ where
             .enumerate()
             .map(|(i, key_attr_name)| format!("{}=:{}", key_attr_name, col_len + i + 1))
             .join(" and ")
-    ));
+    );
 
     let new_vals = table_entity_new.values();
     let old_keys = table_entity_old.key_attr_values();

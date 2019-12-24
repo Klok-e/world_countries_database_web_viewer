@@ -38,9 +38,11 @@ fn continents_read(
     page_size: usize,
 ) -> Result<JsonValue, Error> {
     page_index -= 1;
-    let data =
-        load_data::<Continent>(&*conn, page_index * page_size, page_size * (page_index + 1))?
-            .collect::<Result<Vec<_>, _>>()?;
+    let data = load_data::<Continent>(
+        &*conn,
+        page_index * page_size + 1,
+        page_size * (page_index + 1),
+    )?;
     let item_count = count_rows::<Continent>(&*conn)?;
     Ok(json!({ "itemsCount" : item_count, "data" : data}))
 }
@@ -52,8 +54,11 @@ fn cities_read(
     page_size: usize,
 ) -> Result<JsonValue, Error> {
     page_index -= 1;
-    let data = load_data::<City>(&*conn, page_index * page_size, page_size * (page_index + 1))?
-        .collect::<Result<Vec<_>, _>>()?;
+    let data = load_data::<City>(
+        &*conn,
+        page_index * page_size + 1,
+        page_size * (page_index + 1),
+    )?;
     let item_count = count_rows::<City>(&*conn)?;
     Ok(json!({ "itemsCount" : item_count, "data" : data}))
 }
@@ -65,8 +70,11 @@ fn countries_read(
     page_size: usize,
 ) -> Result<JsonValue, Error> {
     page_index -= 1;
-    let data = load_data::<Country>(&*conn, page_index * page_size, page_size * (page_index + 1))?
-        .collect::<Result<Vec<_>, _>>()?;
+    let data = load_data::<Country>(
+        &*conn,
+        page_index * page_size + 1,
+        page_size * (page_index + 1),
+    )?;
     let item_count = count_rows::<Country>(&*conn)?;
     Ok(json!({ "itemsCount" : item_count, "data" : data}))
 }
@@ -78,8 +86,11 @@ fn districts_read(
     page_size: usize,
 ) -> Result<JsonValue, Error> {
     page_index -= 1;
-    let data = load_data::<District>(&*conn, page_index * page_size, page_size * (page_index + 1))?
-        .collect::<Result<Vec<_>, _>>()?;
+    let data = load_data::<District>(
+        &*conn,
+        page_index * page_size + 1,
+        page_size * (page_index + 1),
+    )?;
     let item_count = count_rows::<District>(&*conn)?;
     Ok(json!({ "itemsCount" : item_count, "data" : data}))
 }
@@ -91,8 +102,11 @@ fn regions_read(
     page_size: usize,
 ) -> Result<JsonValue, Error> {
     page_index -= 1;
-    let data = load_data::<Region>(&*conn, page_index * page_size, page_size * (page_index + 1))?
-        .collect::<Result<Vec<_>, _>>()?;
+    let data = load_data::<Region>(
+        &*conn,
+        page_index * page_size + 1,
+        page_size * (page_index + 1),
+    )?;
     let item_count = count_rows::<Region>(&*conn)?;
     Ok(json!({ "itemsCount" : item_count, "data" : data}))
 }
