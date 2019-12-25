@@ -82,7 +82,7 @@ impl SchemaTable for City {
 pub struct Country {
     pub name: String,
     pub fg_continent_name: Option<String>,
-    pub fg_capital_city_id: Option<String>,
+    pub fg_capital_city_id: Option<usize>,
 }
 impl RowValue for Country {
     fn get(row: &Row) -> Result<Self, Error> {

@@ -236,6 +236,7 @@ function create_grid(gridId, page_name) {
                         d.reject()
                     },
                     success: function (data, status, jqXHR) {
+                        $(gridId).jsGrid("clearInsert");
                         d.resolve(data)
                     },
                 });

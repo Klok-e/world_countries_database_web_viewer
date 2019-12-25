@@ -5,7 +5,6 @@ use rocket::{
     response::Responder,
     Request, Response,
 };
-use rocket_contrib::json::Json;
 
 #[derive(Debug)]
 pub enum Error {
