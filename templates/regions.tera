@@ -15,15 +15,6 @@ Regions
 
 {% block body_end %}
 <script>
-    create_grid("#jsGrid", "regions.tera", [
-        {name: "region_id", title: "Region ID", type: "number", width: 50},
-        {name: "region_name", title: "Region Name", type: "text", width: 100},
-        {name: "fg_country_name", title: "Country Name", type: "foreignKeyField", width: 100},
-        {name: "population", title: "Population", type: "number", width: 50},
-        {name: "area_m2", title: "Area M2", type: "number", width: 50},
-        {name: "climate", title: "Climate", type: "text", width: 100},
-        {name: "fg_centre_city_id", title: "Central City ID", type: "number", width: 50},
-        {type: "control"}
-    ])
+    create_grid("#jsGrid", "regions.tera")
 </script>
 {% endblock body_end %}

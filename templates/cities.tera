@@ -15,11 +15,6 @@ Cities
 
 {% block body_end %}
 <script>
-    create_grid("#jsGrid", "cities.tera", [
-        {name: "city_id", title: "City ID", type: "number", width: 50},
-        {name: "city_name", title: "City Name", type: "text", width: 100},
-        {name: "fg_region_id", title: "Region ID", type: "number", width: 50},
-        {type: "control"}
-    ])
+    create_grid("#jsGrid", "cities.tera")
 </script>
 {% endblock body_end %}

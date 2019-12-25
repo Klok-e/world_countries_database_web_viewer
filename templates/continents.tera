@@ -15,10 +15,6 @@ Continents
 
 {% block body_end %}
 <script>
-    create_grid("#jsGrid", "continents.tera", [
-        {name: "name", title: "Name", type: "text", width: 100},
-        {name: "area_m2", title: "Area M2", type: "number", width: 50},
-        {type: "control"}
-    ])
+    create_grid("#jsGrid", "continents.tera")
 </script>
 {% endblock body_end %}
