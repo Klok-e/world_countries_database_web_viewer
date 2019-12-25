@@ -23,7 +23,7 @@ impl From<r2d2_oracle::oracle::Error> for Error {
 
 impl<'r> Responder<'r> for Error {
     fn respond_to(self, req: &Request) -> response::Result<'r> {
-        match dbg!(self) {
+        match self {
             Error::OracleError(or_error) => {
                 if let oracle::Error::OciError(_) = or_error {
                     Response::build_from(
