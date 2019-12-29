@@ -1,3 +1,4 @@
+use crate::auth::{Admin, User};
 use crate::core::OldNew;
 use crate::database_operations::{
     count_rows, delete_data, insert_data, load_data, update_data, SchemaTable,
@@ -42,12 +43,12 @@ enum Table {
 
 impl Table {
     fn parse(name: String) -> Result<Self, Error> {
-        Ok(match name.split(".").next().as_ref() {
-            Some(&"continents") => Self::Continents,
-            Some(&"cities") => Self::Cities,
-            Some(&"countries") => Self::Countries,
-            Some(&"districts") => Self::Districts,
-            Some(&"regions") => Self::Regions,
+        Ok(match name.split(".").next().take() {
+            Some("continents") => Self::Continents,
+            Some("cities") => Self::Cities,
+            Some("countries") => Self::Countries,
+            Some("districts") => Self::Districts,
+            Some("regions") => Self::Regions,
             _ => return Err(Error::TableDoesntExistError { table: name }),
         })
     }
@@ -59,6 +60,7 @@ fn read_data(
     table_name: String,
     mut page_index: usize,
     page_size: usize,
+    user: User,
 ) -> Result<JsonValue, Error> {
     fn load_data_and_count_to_json<T>(
         connection: &OracleConnection,
@@ -95,31 +97,48 @@ fn read_data(
 fn continents_insert(
     conn: OracleConnection,
     item: Json<Continent>,
+    user: User,
 ) -> Result<Json<Continent>, Error> {
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
 
 #[post("/cities.tera/items", format = "json", data = "<item>")]
-fn cities_insert(conn: OracleConnection, item: Json<City>) -> Result<Json<City>, Error> {
+fn cities_insert(
+    conn: OracleConnection,
+    item: Json<City>,
+    user: User,
+) -> Result<Json<City>, Error> {
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
 
 #[post("/countries.tera/items", format = "json", data = "<item>")]
-fn countries_insert(conn: OracleConnection, item: Json<Country>) -> Result<Json<Country>, Error> {
+fn countries_insert(
+    conn: OracleConnection,
+    item: Json<Country>,
+    user: User,
+) -> Result<Json<Country>, Error> {
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
 
 #[post("/districts.tera/items", format = "json", data = "<item>")]
-fn districts_insert(conn: OracleConnection, item: Json<District>) -> Result<Json<District>, Error> {
+fn districts_insert(
+    conn: OracleConnection,
+    item: Json<District>,
+    user: User,
+) -> Result<Json<District>, Error> {
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
 
 #[post("/regions.tera/items", format = "json", data = "<item>")]
-fn regions_insert(conn: OracleConnection, item: Json<Region>) -> Result<Json<Region>, Error> {
+fn regions_insert(
+    conn: OracleConnection,
+    item: Json<Region>,
+    user: User,
+) -> Result<Json<Region>, Error> {
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -128,13 +147,18 @@ fn regions_insert(conn: OracleConnection, item: Json<Region>) -> Result<Json<Reg
 fn continents_update(
     conn: OracleConnection,
     item: Json<OldNew<Continent>>,
+    user: Admin,
 ) -> Result<Json<Continent>, Error> {
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
 }
 
 #[put("/cities.tera/items", format = "json", data = "<item>")]
-fn cities_update(conn: OracleConnection, item: Json<OldNew<City>>) -> Result<Json<City>, Error> {
+fn cities_update(
+    conn: OracleConnection,
+    item: Json<OldNew<City>>,
+    user: Admin,
+) -> Result<Json<City>, Error> {
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
 }
@@ -143,6 +167,7 @@ fn cities_update(conn: OracleConnection, item: Json<OldNew<City>>) -> Result<Jso
 fn countries_update(
     conn: OracleConnection,
     item: Json<OldNew<Country>>,
+    user: Admin,
 ) -> Result<Json<Country>, Error> {
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
@@ -152,6 +177,7 @@ fn countries_update(
 fn districts_update(
     conn: OracleConnection,
     item: Json<OldNew<District>>,
+    user: Admin,
 ) -> Result<Json<District>, Error> {
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
@@ -161,6 +187,7 @@ fn districts_update(
 fn regions_update(
     conn: OracleConnection,
     item: Json<OldNew<Region>>,
+    user: Admin,
 ) -> Result<Json<Region>, Error> {
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
@@ -170,31 +197,48 @@ fn regions_update(
 fn continents_delete(
     conn: OracleConnection,
     item: Json<Continent>,
+    user: Admin,
 ) -> Result<Json<Continent>, Error> {
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }
 
 #[delete("/cities.tera/items", format = "json", data = "<item>")]
-fn cities_delete(conn: OracleConnection, item: Json<City>) -> Result<Json<City>, Error> {
+fn cities_delete(
+    conn: OracleConnection,
+    item: Json<City>,
+    user: Admin,
+) -> Result<Json<City>, Error> {
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }
 
 #[delete("/countries.tera/items", format = "json", data = "<item>")]
-fn countries_delete(conn: OracleConnection, item: Json<Country>) -> Result<Json<Country>, Error> {
+fn countries_delete(
+    conn: OracleConnection,
+    item: Json<Country>,
+    user: Admin,
+) -> Result<Json<Country>, Error> {
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }
 
 #[delete("/districts.tera/items", format = "json", data = "<item>")]
-fn districts_delete(conn: OracleConnection, item: Json<District>) -> Result<Json<District>, Error> {
+fn districts_delete(
+    conn: OracleConnection,
+    item: Json<District>,
+    user: Admin,
+) -> Result<Json<District>, Error> {
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }
 
 #[delete("/regions.tera/items", format = "json", data = "<item>")]
-fn regions_delete(conn: OracleConnection, item: Json<Region>) -> Result<Json<Region>, Error> {
+fn regions_delete(
+    conn: OracleConnection,
+    item: Json<Region>,
+    user: Admin,
+) -> Result<Json<Region>, Error> {
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }
