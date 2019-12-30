@@ -1,5 +1,6 @@
 use crate::database_oracle::DbConnection;
 use crate::error::Error;
+use crate::schema::UserInfo;
 use itertools::Itertools;
 use r2d2_oracle::oracle::{sql_type::ToSql, RowValue};
 use std::fmt::Debug;
@@ -168,4 +169,32 @@ where
         .ok_or_else(|| Error::TableEmptyError {
             table_name: "continents".to_owned(),
         })
+}
+
+pub fn get_user(connection: &DbConnection, user: &UserInfo) -> Result<Option<UserInfo>, Error> {
+    let conn = connection.oracle_connection();
+    let sql = dbg!(format!(
+        "select {} from {} where {}",
+        UserInfo::column_names().join(","),
+        UserInfo::table_name(),
+        UserInfo::key_attrs()
+            .into_iter()
+            .enumerate()
+            .map(|(i, key_attr_name)| format!("{}=:{}", key_attr_name, i + 1))
+            .join(" and ")
+    ));
+    let vals = user.key_attr_values();
+    let sql_params = vals
+        .iter()
+        .map(|i| i.as_ref())
+        .collect::<Vec<_>>()
+        .into_boxed_slice();
+    let matches = conn
+        .query_as::<UserInfo>(&sql, sql_params.as_ref())?
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(if matches.len() == 1 {
+        Some(matches.into_iter().next().take().unwrap())
+    } else {
+        None
+    })
 }

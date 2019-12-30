@@ -1,5 +1,9 @@
 use crate::database_operations::SchemaTable;
-use r2d2_oracle::oracle::{sql_type::ToSql, Error, Row, RowValue};
+use chrono;
+use r2d2_oracle::oracle::{
+    sql_type::{OracleType, ToSql},
+    Error, Row, RowValue,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -218,5 +222,50 @@ impl SchemaTable for Region {
 
     fn key_attr_values(&self) -> Vec<Box<dyn ToSql>> {
         vec![Box::new(self.region_id.clone())]
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, SmartDefault)]
+pub struct UserInfo {
+    pub username: String,
+    pub password: String,
+    pub is_admin: String,
+    #[default(_code = "chrono::Utc::now()")]
+    pub last_appearance: chrono::DateTime<chrono::Utc>,
+}
+impl RowValue for UserInfo {
+    fn get(row: &Row) -> Result<Self, Error> {
+        Ok(UserInfo {
+            username: row.get("username")?,
+            password: row.get("password")?,
+            is_admin: row.get("is_admin")?,
+            last_appearance: row.get("last_appearance")?,
+        })
+    }
+}
+impl SchemaTable for UserInfo {
+    fn column_names() -> Vec<&'static str> {
+        vec!["username", "password", "is_admin", "last_appearance"]
+    }
+
+    fn table_name() -> &'static str {
+        "users_info"
+    }
+
+    fn values(&self) -> Vec<Box<dyn ToSql>> {
+        vec![
+            Box::new(self.username.clone()),
+            Box::new(self.password.clone()),
+            Box::new(self.is_admin.clone()),
+            Box::new(self.last_appearance.clone()),
+        ]
+    }
+
+    fn key_attrs() -> Vec<&'static str> {
+        vec!["username"]
+    }
+
+    fn key_attr_values(&self) -> Vec<Box<dyn ToSql>> {
+        vec![Box::new(self.username.clone())]
     }
 }

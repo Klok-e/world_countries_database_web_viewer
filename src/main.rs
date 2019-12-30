@@ -5,6 +5,8 @@ extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate smart_default;
 
 mod auth;
 mod core;
@@ -15,8 +17,12 @@ mod read_insert_update_delete;
 mod schema;
 
 use crate::auth::{User, UserData};
+use crate::database_operations::get_user;
 use crate::database_oracle::OracleConnection;
+use crate::error::Error;
 use crate::read_insert_update_delete::CRUD_ROUTES;
+use crate::schema::UserInfo;
+use rocket::http::{Cookie, Cookies};
 use rocket::request::Form;
 use rocket::response::Redirect;
 use rocket::{Request, Response};
@@ -68,9 +74,22 @@ fn login() -> Template {
 }
 
 #[post("/login.tera", data = "<user>")]
-fn auth_user(user: Form<UserData>) -> Redirect {
+fn auth_user(
+    connection: OracleConnection,
+    mut cookies: Cookies,
+    user: Form<UserData>,
+) -> Result<Redirect, Error> {
     dbg!(user);
-    Redirect::to("/")
+    let user = get_user(
+        &*connection,
+        &UserInfo {
+            ..UserInfo::default()
+        },
+    )?;
+    if let Some(u) = user {
+        cookies.add_private(Cookie::new("user_name", u.username.clone()));
+    };
+    Ok(Redirect::to("/"))
 }
 
 #[catch(401)]
@@ -79,6 +98,8 @@ fn unauthorized(req: &Request) -> Redirect {
 }
 
 fn main() {
+    dbg!(std::env::var("LD_LIBRARY_PATH"));
+
     let mut root_routes =
         routes![index, continents, cities, countries, districts, regions, login, auth_user];
     root_routes.extend(CRUD_ROUTES.clone());

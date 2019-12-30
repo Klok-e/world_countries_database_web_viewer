@@ -125,6 +125,7 @@ checksum = "31850b4a4d6bae316f7a09e691c944c28299298837edc0a03f755618c23cbc01"
 dependencies = [
  "num-integer",
  "num-traits",
+ "serde",
  "time",
 ]
 
@@ -404,12 +405,14 @@ dependencies = [
 name = "kursach"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "itertools",
  "lazy_static",
  "r2d2-oracle",
  "rocket",
  "rocket_contrib",
  "serde",
+ "smart-default",
 ]
 
 [[package]]
@@ -611,6 +614,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "235a4d39272271de35f841d3e23f206442c00d183803cfc81aa9a2355825252a"
 dependencies = [
  "cc",
+ "chrono",
  "lazy_static",
  "paste",
  "try_from",
@@ -636,7 +640,7 @@ dependencies = [
  "cloudabi",
  "libc",
  "redox_syscall",
- "smallvec 1.0.0",
+ "smallvec 1.1.0",
  "winapi 0.3.8",
 ]
 
@@ -782,9 +786,9 @@ dependencies = [
 
 [[package]]
 name = "r2d2"
-version = "0.8.7"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22b5c5fc5fba064373f03887337b412e0e1562d63023393db77251146cb75553"
+checksum = "1497e40855348e4a8a40767d8e55174bce1e445a3ac9254ad44ad468ee0485af"
 dependencies = [
  "log 0.4.8",
  "parking_lot",
@@ -794,8 +798,7 @@ dependencies = [
 [[package]]
 name = "r2d2-oracle"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97c01b8652d74f1404665d36981f3751262d4e6c51e60bc213f91acd2c860bc6"
+source = "git+https://github.com/LokiVKlokeNaAndoke/r2d2-oracle#607f38dde1dd7cce05fb4479a66b4fc238b3fe83"
 dependencies = [
  "oracle",
  "r2d2",
@@ -1029,9 +1032,20 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.0.0"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ecf3b85f68e8abaa7555aa5abdb1153079387e60b718283d732f03897fcfc86"
+checksum = "44e59e0c9fa00817912ae6e4e6e3c4fe04455e75699d06eedc7d85917ed8e8f4"
+
+[[package]]
+name = "smart-default"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "133659a15339456eeeb07572eb02a91c91e9815e9cbc89566944d2c8d3efdbf6"
+dependencies = [
+ "proc-macro2 1.0.6",
+ "quote 1.0.2",
+ "syn 1.0.11",
+]
 
 [[package]]
 name = "state"
@@ -1215,7 +1229,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b561e267b2326bb4cebfc0ef9e68355c7abe6c6f522aeac2f5bf95d56c59bdcf"
 dependencies = [
- "smallvec 1.0.0",
+ "smallvec 1.1.0",
 ]
 
 [[package]]
