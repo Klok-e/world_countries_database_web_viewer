@@ -15,6 +15,11 @@ Districts
 
 {% block body_end %}
 <script>
-    create_grid("#jsGrid", "districts.tera")
+    let is_admin = false;
+    //{% if is_admin %}
+    is_admin = true;
+    //{% endif %}
+
+    create_grid("#jsGrid", "districts.tera", is_admin)
 </script>
 {% endblock body_end %}

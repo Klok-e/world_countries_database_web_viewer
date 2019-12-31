@@ -17,11 +17,12 @@ mod read_insert_update_delete;
 mod schema;
 
 use crate::auth::{User, UserData};
-use crate::database_operations::get_user;
+use crate::database_operations::{get_user, update_data};
 use crate::database_oracle::OracleConnection;
 use crate::error::Error;
 use crate::read_insert_update_delete::CRUD_ROUTES;
 use crate::schema::UserInfo;
+use chrono::Utc;
 use rocket::http::{Cookie, Cookies};
 use rocket::request::Form;
 use rocket::response::Redirect;
@@ -32,45 +33,46 @@ use rocket_contrib::templates::Template;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-fn create_context(templ_name: &str) -> HashMap<&str, Value> {
+fn create_context(templ_name: &str, is_admin: bool) -> HashMap<&str, Value> {
     let mut map = HashMap::new();
     map.insert("current_tname", Value::from(templ_name));
+    map.insert("is_admin", Value::from(is_admin));
     map
 }
 
 #[get("/")]
 fn index(user: User) -> Template {
-    Template::render("home", create_context("home"))
+    Template::render("home", create_context("home", user.is_admin))
 }
 
 #[get("/continents.tera")]
 fn continents(user: User) -> Template {
-    Template::render("continents", create_context("continents"))
+    Template::render("continents", create_context("continents", user.is_admin))
 }
 
 #[get("/cities.tera")]
 fn cities(user: User) -> Template {
-    Template::render("cities", create_context("cities"))
+    Template::render("cities", create_context("cities", user.is_admin))
 }
 
 #[get("/countries.tera")]
 fn countries(user: User) -> Template {
-    Template::render("countries", create_context("countries"))
+    Template::render("countries", create_context("countries", user.is_admin))
 }
 
 #[get("/districts.tera")]
 fn districts(user: User) -> Template {
-    Template::render("districts", create_context("districts"))
+    Template::render("districts", create_context("districts", user.is_admin))
 }
 
 #[get("/regions.tera")]
 fn regions(user: User) -> Template {
-    Template::render("regions", create_context("regions"))
+    Template::render("regions", create_context("regions", user.is_admin))
 }
 
 #[get("/login.tera")]
 fn login() -> Template {
-    Template::render("login", create_context("login"))
+    Template::render("login", create_context("login", false))
 }
 
 #[post("/login.tera", data = "<user>")]
@@ -79,17 +81,35 @@ fn auth_user(
     mut cookies: Cookies,
     user: Form<UserData>,
 ) -> Result<Redirect, Error> {
-    dbg!(user);
+    dbg!(&user);
+    let pass = user.password.clone();
     let user = get_user(
         &*connection,
         &UserInfo {
+            username: user.username.clone(),
             ..UserInfo::default()
         },
     )?;
     if let Some(u) = user {
-        cookies.add_private(Cookie::new("user_name", u.username.clone()));
+        if pass == u.password {
+            cookies.add_private(Cookie::new("user_name", u.username.clone()));
+            update_data(
+                &*connection,
+                &u,
+                &UserInfo {
+                    last_appearance: Utc::now(),
+                    ..u.clone()
+                },
+            )?;
+        }
     };
     Ok(Redirect::to("/"))
+}
+
+#[get("/signout.tera")]
+fn signout_user(mut cookies: Cookies) -> Redirect {
+    cookies.remove_private(Cookie::named("user_name"));
+    Redirect::to("/")
 }
 
 #[catch(401)]
@@ -100,8 +120,17 @@ fn unauthorized(req: &Request) -> Redirect {
 fn main() {
     dbg!(std::env::var("LD_LIBRARY_PATH"));
 
-    let mut root_routes =
-        routes![index, continents, cities, countries, districts, regions, login, auth_user];
+    let mut root_routes = routes![
+        index,
+        continents,
+        cities,
+        countries,
+        districts,
+        regions,
+        login,
+        auth_user,
+        signout_user
+    ];
     root_routes.extend(CRUD_ROUTES.clone());
     rocket::ignite()
         .attach(OracleConnection::fairing())

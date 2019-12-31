@@ -173,7 +173,7 @@ where
 
 pub fn get_user(connection: &DbConnection, user: &UserInfo) -> Result<Option<UserInfo>, Error> {
     let conn = connection.oracle_connection();
-    let sql = dbg!(format!(
+    let sql = format!(
         "select {} from {} where {}",
         UserInfo::column_names().join(","),
         UserInfo::table_name(),
@@ -182,7 +182,7 @@ pub fn get_user(connection: &DbConnection, user: &UserInfo) -> Result<Option<Use
             .enumerate()
             .map(|(i, key_attr_name)| format!("{}=:{}", key_attr_name, i + 1))
             .join(" and ")
-    ));
+    );
     let vals = user.key_attr_values();
     let sql_params = vals
         .iter()

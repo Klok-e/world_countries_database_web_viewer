@@ -65,7 +65,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
                         last_appearance,
                     };
                     // check if the user needs to relogin
-                    if last_appearance < Utc::now() - chrono::Duration::days(1) {
+                    if last_appearance < Utc::now() - chrono::Duration::minutes(5) {
                         println!("relogin! {}", username);
                         request.cookies().remove_private(Cookie::named("user_name"));
                         return Outcome::Failure((Status::Unauthorized, ()));

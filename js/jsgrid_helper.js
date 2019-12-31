@@ -1,72 +1,76 @@
-let table_name_to_fields = {
-    "regions.tera": [
-        {name: "region_id", title: "Region ID", type: "number", width: 50},
-        {name: "region_name", title: "Region Name", type: "text", width: 100},
-        {
-            name: "fg_country_name",
-            title: "Country Name",
-            type: "foreignKeyField",
-            width: 100,
-            ref_table: "countries.tera",
-            ref_column: "name"
-        },
-        {name: "population", title: "Population", type: "number", width: 50},
-        {name: "area_m2", title: "Area M2", type: "number", width: 50},
-        {name: "climate", title: "Climate", type: "text", width: 100},
-        {
-            name: "fg_centre_city_id",
-            title: "Central City ID",
-            type: "foreignKeyField",
-            width: 50,
-            ref_table: "cities.tera",
-            ref_column: "city_id",
-            number: true,
-        },
-        {type: "my_control"}
-    ],
-    "cities.tera": [
-        {name: "city_id", title: "City ID", type: "number", width: 50},
-        {name: "city_name", title: "City Name", type: "text", width: 100},
-        {
-            name: "fg_region_id", title: "Region ID", type: "foreignKeyField", width: 50,
-            ref_table: "regions.tera",
-            ref_column: "region_id",
-            number: true,
-        },
-        {type: "my_control"}
-    ],
-    "continents.tera": [
-        {name: "name", title: "Name", type: "text", width: 100},
-        {name: "area_m2", title: "Area M2", type: "number", width: 50},
-        {type: "my_control"}
-    ],
-    "countries.tera": [
-        {name: "name", title: "Name", type: "text", width: 100},
-        {
-            name: "fg_continent_name", title: "Continent", type: "foreignKeyField", width: 50,
-            ref_table: "continents.tera",
-            ref_column: "name"
-        },
-        {
-            name: "fg_capital_city_id", title: "Capital ID", type: "foreignKeyField", width: 50,
-            ref_table: "cities.tera",
-            ref_column: "city_id",
-            number: true,
-        },
-        {type: "my_control"}
-    ],
-    "districts.tera": [
-        {name: "district_id", title: "District ID", type: "number", width: 50},
-        {name: "district_name", title: "District Name", type: "text", width: 100},
-        {
-            name: "fg_city_id", title: "City ID", type: "foreignKeyField", width: 50,
-            ref_table: "cities.tera",
-            ref_column: "city_id",
-            number: true,
-        },
-        {type: "my_control"}
-    ]
-};
+let table_name_to_fields;
+
+function init_table(edit_delete_enabled) {
+    table_name_to_fields = {
+        "regions.tera": [
+            {name: "region_id", title: "Region ID", type: "number", width: 50},
+            {name: "region_name", title: "Region Name", type: "text", width: 100},
+            {
+                name: "fg_country_name",
+                title: "Country Name",
+                type: "foreignKeyField",
+                width: 100,
+                ref_table: "countries.tera",
+                ref_column: "name"
+            },
+            {name: "population", title: "Population", type: "number", width: 50},
+            {name: "area_m2", title: "Area M2", type: "number", width: 50},
+            {name: "climate", title: "Climate", type: "text", width: 100},
+            {
+                name: "fg_centre_city_id",
+                title: "Central City ID",
+                type: "foreignKeyField",
+                width: 50,
+                ref_table: "cities.tera",
+                ref_column: "city_id",
+                number: true,
+            },
+            {type: "my_control", editButton: edit_delete_enabled, deleteButton: edit_delete_enabled}
+        ],
+        "cities.tera": [
+            {name: "city_id", title: "City ID", type: "number", width: 50},
+            {name: "city_name", title: "City Name", type: "text", width: 100},
+            {
+                name: "fg_region_id", title: "Region ID", type: "foreignKeyField", width: 50,
+                ref_table: "regions.tera",
+                ref_column: "region_id",
+                number: true,
+            },
+            {type: "my_control", editButton: edit_delete_enabled, deleteButton: edit_delete_enabled}
+        ],
+        "continents.tera": [
+            {name: "name", title: "Name", type: "text", width: 100},
+            {name: "area_m2", title: "Area M2", type: "number", width: 50},
+            {type: "my_control", editButton: edit_delete_enabled, deleteButton: edit_delete_enabled}
+        ],
+        "countries.tera": [
+            {name: "name", title: "Name", type: "text", width: 100},
+            {
+                name: "fg_continent_name", title: "Continent", type: "foreignKeyField", width: 50,
+                ref_table: "continents.tera",
+                ref_column: "name"
+            },
+            {
+                name: "fg_capital_city_id", title: "Capital ID", type: "foreignKeyField", width: 50,
+                ref_table: "cities.tera",
+                ref_column: "city_id",
+                number: true,
+            },
+            {type: "my_control", editButton: edit_delete_enabled, deleteButton: edit_delete_enabled}
+        ],
+        "districts.tera": [
+            {name: "district_id", title: "District ID", type: "number", width: 50},
+            {name: "district_name", title: "District Name", type: "text", width: 100},
+            {
+                name: "fg_city_id", title: "City ID", type: "foreignKeyField", width: 50,
+                ref_table: "cities.tera",
+                ref_column: "city_id",
+                number: true,
+            },
+            {type: "my_control", editButton: edit_delete_enabled, deleteButton: edit_delete_enabled}
+        ]
+    };
+}
 
 let ForeignKeyField = function (config) {
     jsGrid.Field.call(this, config);
@@ -193,13 +197,14 @@ MyControl.prototype = new jsGrid.fields.control({
 });
 jsGrid.fields.my_control = MyControl;
 
-function create_grid(gridId, page_name) {
+function create_grid(gridId, page_name, edit_delete_enabled) {
+    init_table(edit_delete_enabled);
     let previousItem;
     $(gridId).jsGrid({
         width: "100%",
 
         inserting: true,
-        editing: true,
+        editing: edit_delete_enabled,
         autoload: true,
         paging: true,
         pageLoading: true,
