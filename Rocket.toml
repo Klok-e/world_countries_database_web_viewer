@@ -1,4 +1,3 @@
 [global.databases]
-oracle_db = {url = "fuck me", username = "KURSACH_COUNTRIES", password = "qwerty", connect_string = "localhost"}
-
-
+#oracle_db = {url = "localhost:32118", username = "KURSACH_COUNTRIES", password = "qwerty"}
+oracle_db = {url = "localhost", username = "KURSACH_COUNTRIES", password = "qwerty"}

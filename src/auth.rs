@@ -9,12 +9,17 @@ use rocket::request::{self, FromRequest};
 use rocket::{Outcome, Request};
 
 #[derive(FromForm, Debug, Default)]
-pub struct UserData {
+pub struct UserFullData {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
+pub struct UserData {
+    pub username: String,
+}
+
+#[derive(Default, Debug)]
 pub struct User {
     pub is_admin: bool,
     pub data: UserData,
@@ -23,7 +28,7 @@ impl User {
     fn new(username: String, password: String, is_admin: bool) -> Self {
         User {
             is_admin,
-            data: UserData { username, password },
+            data: UserData { username },
         }
     }
 }
@@ -94,6 +99,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
     }
 }
 
+#[derive(Debug)]
 pub struct Admin {
     pub data: UserData,
 }
@@ -108,7 +114,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for Admin {
             Outcome::Success(Admin {
                 data: UserData {
                     username: user.data.username,
-                    password: user.data.password,
                 },
             })
         } else {

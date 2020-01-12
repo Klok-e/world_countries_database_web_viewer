@@ -16,13 +16,14 @@ mod error;
 mod read_insert_update_delete;
 mod schema;
 
-use crate::auth::{User, UserData};
+use crate::auth::{User, UserFullData};
 use crate::database_operations::{get_user, update_data};
 use crate::database_oracle::OracleConnection;
 use crate::error::Error;
 use crate::read_insert_update_delete::CRUD_ROUTES;
 use crate::schema::UserInfo;
-use chrono::Utc;
+use chrono::{self, Utc};
+use log::info;
 use rocket::http::{Cookie, Cookies};
 use rocket::request::Form;
 use rocket::response::Redirect;
@@ -79,9 +80,13 @@ fn login() -> Template {
 fn auth_user(
     connection: OracleConnection,
     mut cookies: Cookies,
-    user: Form<UserData>,
+    user: Form<UserFullData>,
 ) -> Result<Redirect, Error> {
     dbg!(&user);
+    info!(
+        "{}",
+        format!("Login attempt with username {:?}", &user.0.username)
+    );
     let pass = user.password.clone();
     let user = get_user(
         &*connection,
@@ -101,6 +106,10 @@ fn auth_user(
                     ..u.clone()
                 },
             )?;
+            info!(
+                "{}",
+                format!("Login attempt with username {:?} successful", &u.username)
+            );
         }
     };
     Ok(Redirect::to("/"))
@@ -117,7 +126,22 @@ fn unauthorized(req: &Request) -> Redirect {
     Redirect::to("/login.tera")
 }
 
-fn main() {
+fn main() -> Result<(), fern::InitError> {
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{}[{}] {}",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                record.level(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Info)
+        .chain(std::io::stdout())
+        .chain(fern::log_file("output.log")?)
+        .apply()
+        .unwrap();
+
     dbg!(std::env::var("LD_LIBRARY_PATH"));
 
     let mut root_routes = routes![
@@ -141,4 +165,5 @@ fn main() {
         .mount("/js", StaticFiles::from("./js"))
         .register(catchers![unauthorized])
         .launch();
+    Ok(())
 }

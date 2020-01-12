@@ -6,6 +6,7 @@ use crate::database_operations::{
 use crate::database_oracle::OracleConnection;
 use crate::error::Error;
 use crate::schema::{City, Continent, Country, District, Region};
+use log::info;
 use r2d2_oracle::oracle::RowValue;
 use rocket::Route;
 use rocket_contrib::json::{Json, JsonValue};
@@ -33,6 +34,7 @@ lazy_static! {
     ];
 }
 
+#[derive(Debug, Copy, Clone)]
 enum Table {
     Continents,
     Cities,
@@ -75,10 +77,19 @@ fn read_data(
         let data = load_data::<T>(conn, lower, higher)?;
         Ok(json!({ "itemsCount" : rows, "data" : data}))
     }
+
     page_index -= 1;
     let record_lower = page_index * page_size + 1;
     let record_higher = page_size * (page_index + 1);
-    match Table::parse(table_name)? {
+    let table = Table::parse(table_name)?;
+    info!(
+        "{}",
+        format!(
+            "User {:?} read {:?} from {} to {}",
+            user, table, record_lower, record_higher
+        )
+    );
+    match table {
         Table::Continents => {
             load_data_and_count_to_json::<Continent>(&conn, record_lower, record_higher)
         }
@@ -99,6 +110,10 @@ fn continents_insert(
     item: Json<Continent>,
     user: User,
 ) -> Result<Json<Continent>, Error> {
+    info!(
+        "{}",
+        format!("User {:?} inserted continent {:?}", user, &item.0)
+    );
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -109,6 +124,7 @@ fn cities_insert(
     item: Json<City>,
     user: User,
 ) -> Result<Json<City>, Error> {
+    info!("{}", format!("User {:?} inserted city {:?}", user, &item.0));
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -119,6 +135,10 @@ fn countries_insert(
     item: Json<Country>,
     user: User,
 ) -> Result<Json<Country>, Error> {
+    info!(
+        "{}",
+        format!("User {:?} inserted country {:?}", user, &item.0)
+    );
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -129,6 +149,10 @@ fn districts_insert(
     item: Json<District>,
     user: User,
 ) -> Result<Json<District>, Error> {
+    info!(
+        "{}",
+        format!("User {:?} inserted district {:?}", user, &item.0)
+    );
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -139,6 +163,10 @@ fn regions_insert(
     item: Json<Region>,
     user: User,
 ) -> Result<Json<Region>, Error> {
+    info!(
+        "{}",
+        format!("User {:?} inserted region {:?}", user, &item.0)
+    );
     insert_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -149,6 +177,15 @@ fn continents_update(
     item: Json<OldNew<Continent>>,
     user: Admin,
 ) -> Result<Json<Continent>, Error> {
+    info!(
+        "{}",
+        format!(
+            "Admin {:?} updated continents row {:?} to {:?}",
+            user,
+            &(item.0).old,
+            &(item.0).new
+        )
+    );
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
 }
@@ -159,6 +196,15 @@ fn cities_update(
     item: Json<OldNew<City>>,
     user: Admin,
 ) -> Result<Json<City>, Error> {
+    info!(
+        "{}",
+        format!(
+            "Admin {:?} updated cities row {:?} to {:?}",
+            user,
+            &(item.0).old,
+            &(item.0).new
+        )
+    );
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
 }
@@ -169,6 +215,15 @@ fn countries_update(
     item: Json<OldNew<Country>>,
     user: Admin,
 ) -> Result<Json<Country>, Error> {
+    info!(
+        "{}",
+        format!(
+            "Admin {:?} updated countries row {:?} to {:?}",
+            user,
+            &(item.0).old,
+            &(item.0).new
+        )
+    );
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
 }
@@ -179,6 +234,15 @@ fn districts_update(
     item: Json<OldNew<District>>,
     user: Admin,
 ) -> Result<Json<District>, Error> {
+    info!(
+        "{}",
+        format!(
+            "Admin {:?} updated districts row {:?} to {:?}",
+            user,
+            &(item.0).old,
+            &(item.0).new
+        )
+    );
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
 }
@@ -189,6 +253,15 @@ fn regions_update(
     item: Json<OldNew<Region>>,
     user: Admin,
 ) -> Result<Json<Region>, Error> {
+    info!(
+        "{}",
+        format!(
+            "Admin {:?} updated regions row {:?} to {:?}",
+            user,
+            &(item.0).old,
+            &(item.0).new
+        )
+    );
     update_data(&*conn, &(item.0).old, &(item.0).new)?;
     Ok(Json(item.into_inner().new))
 }
@@ -199,6 +272,10 @@ fn continents_delete(
     item: Json<Continent>,
     user: Admin,
 ) -> Result<Json<Continent>, Error> {
+    info!(
+        "{}",
+        format!("Admin {:?} deleted continents {:?}", user, &item.0)
+    );
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -209,6 +286,10 @@ fn cities_delete(
     item: Json<City>,
     user: Admin,
 ) -> Result<Json<City>, Error> {
+    info!(
+        "{}",
+        format!("Admin {:?} deleted cities {:?}", user, &item.0)
+    );
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -219,6 +300,10 @@ fn countries_delete(
     item: Json<Country>,
     user: Admin,
 ) -> Result<Json<Country>, Error> {
+    info!(
+        "{}",
+        format!("Admin {:?} deleted countries {:?}", user, &item.0)
+    );
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -229,6 +314,10 @@ fn districts_delete(
     item: Json<District>,
     user: Admin,
 ) -> Result<Json<District>, Error> {
+    info!(
+        "{}",
+        format!("Admin {:?} deleted districts {:?}", user, &item.0)
+    );
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }
@@ -239,6 +328,10 @@ fn regions_delete(
     item: Json<Region>,
     user: Admin,
 ) -> Result<Json<Region>, Error> {
+    info!(
+        "{}",
+        format!("Admin {:?} deleted regions {:?}", user, &item.0)
+    );
     delete_data(&*conn, &item.0)?;
     Ok(item)
 }

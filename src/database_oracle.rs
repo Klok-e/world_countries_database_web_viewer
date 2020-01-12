@@ -58,7 +58,7 @@ impl Poolable for DbConnection {
         }
         let uname = extract_string(&config, "username").unwrap();
         let pass = extract_string(&config, "password").unwrap();
-        let connect_str = extract_string(&config, "connect_string").unwrap();
+        let connect_str = config.url;
         let manager = DbConnectionManager::new(uname, pass, connect_str);
         Ok(r2d2::Pool::builder().max_size(20).build(manager).unwrap())
     }
